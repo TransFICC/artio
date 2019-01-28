@@ -109,7 +109,7 @@ public final class DictionaryParser
         final List<Message> messages = parseMessages(document, fields, components, forwardReferences);
 
         reconnectForwardReferences(forwardReferences, components);
-        sanitizeDictionary(fields, messages);
+        sanitizeDictionary(fields, components, messages);
 
         return new Dictionary(messages, fields, components, null, null, null, -1, -1);
     }
@@ -205,7 +205,7 @@ public final class DictionaryParser
 
     private Map<String, Field> parseFields(final Document document) throws XPathExpressionException
     {
-        final HashMap<String, Field> fields = new HashMap<>();
+        final Map<String, Field> fields = new HashMap<>();
         extractNodes(document, findField,
             (node) ->
             {

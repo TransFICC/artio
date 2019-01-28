@@ -63,6 +63,17 @@ public abstract class Aggregate
                 ));
     }
 
+    public Stream<Entry> allChildEntriesSpecial()
+    {
+        return entries.stream()
+            .flatMap(
+                (entry) -> entry.match(
+                    (ele, field) -> Stream.of(ele),
+                    (ele, group) -> Stream.concat(Stream.of(group.numberField()), group.allChildEntriesSpecial()),
+                    (ele, component) -> component.allChildEntries()
+                ));
+    }
+
     public Aggregate optionalEntry(final Entry.Element element)
     {
         entries().add(Entry.optional(element));
@@ -83,9 +94,9 @@ public abstract class Aggregate
             '}';
     }
 
-    public boolean hasField(final String msgType)
+    public boolean hasField(final String fieldName)
     {
-        return entries().stream().anyMatch(e -> msgType.equals(e.element().name()));
+        return entries().stream().anyMatch(e -> fieldName.equals(e.element().name()));
     }
 
     public boolean containsGroup()

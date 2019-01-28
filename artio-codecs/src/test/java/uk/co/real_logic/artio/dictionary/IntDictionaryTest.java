@@ -24,6 +24,7 @@ import uk.co.real_logic.artio.dictionary.ir.Field.Type;
 import uk.co.real_logic.artio.dictionary.ir.Message;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -44,7 +45,7 @@ public class IntDictionaryTest
         heartbeat.optionalEntry(new Field(112, "TestReqID", Type.STRING));
 
         final List<Message> messages = Arrays.asList(heartbeat);
-        data = new Dictionary(messages, null, null, null, null, "FIX", 4, 4);
+        data = new Dictionary(messages, Collections.emptyMap(), Collections.emptyMap(), null, null, "FIX", 4, 4);
     }
 
     @Test

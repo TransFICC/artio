@@ -85,7 +85,7 @@ public class DictionaryParserTest
     @Test
     public void shouldParseAllFields()
     {
-        assertEquals(44, dictionary.fields().size());
+        assertEquals(40, dictionary.fields().size());
     }
 
     @Test
@@ -170,8 +170,6 @@ public class DictionaryParserTest
     @Test
     public void shouldPrependNumInGroupWithNoForFix44RepeatingGroup()
     {
-        final Field field = field("LinesOfText");
-        assertThat(field.name(), is("NoLinesOfText"));
         final Message newsMessage = dictionary
             .messages()
             .stream()
@@ -276,6 +274,11 @@ public class DictionaryParserTest
     }
 
     private Field field(final String name)
+    {
+        return dictionary.fields().get(name);
+    }
+
+    private Field group(final String name)
     {
         return dictionary.fields().get(name);
     }

@@ -15,6 +15,7 @@
  */
 package uk.co.real_logic.artio.dictionary.ir;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ public final class Dictionary
         this.specType = specType;
         this.majorVersion = majorVersion;
         this.minorVersion = minorVersion;
+        santize(messages, components, fields, header, trailer);
     }
 
     public List<Message> messages()
@@ -99,5 +101,74 @@ public final class Dictionary
                 ", header=" + header +
                 ", trailer=" + trailer +
                 '}';
+    }
+
+    private static void santize(
+        final List<Message> messages,
+        final Map<String, Component> components,
+        final Map<String, Field> fields,
+        final Component header,
+        final Component trailer)
+    {
+        final List<String> toRemove = new ArrayList<>();
+
+        fields.forEach((name, field) ->
+        {
+            if (messages.stream().noneMatch(message ->
+                message.allChildEntriesSpecial()
+                .anyMatch(entry -> entry.name().replace("GroupCounter", "").equals(name))))
+            {
+                toRemove.add(name);
+            }
+        });
+        final List<String> toRemove2 = new ArrayList<>();
+
+        toRemove.forEach(field ->
+        {
+            if (components.values().stream().noneMatch(component ->
+                component.allChildEntriesSpecial().anyMatch(e -> e.name().replace("GroupCounter", "").equals(field))) &&
+                header != null && header.allChildEntriesSpecial().noneMatch(e -> e.name().equals(field)) &&
+                trailer != null && trailer.allChildEntriesSpecial().noneMatch(e -> e.name().equals(field)))
+            {
+                toRemove2.add(field);
+            }
+        });
+        toRemove2.forEach(fields::remove);
+    }
+
+    private void dropUnusedComponents(final Map<String, Component> components, final List<Message> messages)
+    {
+        final List<String> toRemove = new ArrayList<>();
+        components.forEach((name, component) ->
+        {
+            final boolean componentIsAnOrphan =
+                messages.stream()
+                .noneMatch(message ->
+                message.allChildEntriesSpecial().anyMatch(entry -> component.name().equals(entry.name())));
+            if (componentIsAnOrphan)
+            {
+                toRemove.add(component.name());
+            }
+        });
+
+        toRemove.forEach(components::remove);
+    }
+
+    private void dropUnusedFields(final Map<String, Field> fields, final List<Message> messages)
+    {
+        final List<String> toRemove = new ArrayList<>();
+        fields.forEach((name, field) ->
+        {
+            final boolean isFieldAnOrphan =
+                messages.stream()
+                .noneMatch(message ->
+                message.allChildEntriesSpecial().anyMatch(entry -> name.equals(entry.name())));
+            if (isFieldAnOrphan)
+            {
+                toRemove.add(name);
+            }
+        });
+
+        toRemove.forEach(fields::remove);
     }
 }
