@@ -19,15 +19,24 @@ import org.agrona.generation.PackageOutputManager;
 import uk.co.real_logic.artio.builder.RejectUnknownField;
 import uk.co.real_logic.artio.builder.Validation;
 import uk.co.real_logic.artio.dictionary.generation.*;
+import uk.co.real_logic.artio.dictionary.ir.Component;
 import uk.co.real_logic.artio.dictionary.ir.Dictionary;
+import uk.co.real_logic.artio.dictionary.ir.Field;
+import uk.co.real_logic.artio.dictionary.ir.Message;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static uk.co.real_logic.artio.dictionary.generation.GenerationUtil.*;
 
 public final class CodecGenerationTool
 {
+
     public static void main(final String[] args) throws Exception
     {
         if (args.length < 2)
@@ -43,11 +52,18 @@ public final class CodecGenerationTool
             System.err.print("Two many dictionary files(1 or 2 dictionaries supported)." + files);
             printUsageAndExit();
         }
-        Dictionary dictionary = null;
-        for (final String fileName : fileNames)
+        final DictionaryParser dictionaryParser = new DictionaryParser();
+        final Dictionary dictionary;
+
+        if (fileNames.length == 1)
         {
-            final File xmlFile = new File(fileName);
-            dictionary = parseDictionary(xmlFile, dictionary);
+            dictionary = parseDictionary(fileNames[0], dictionaryParser::parseWithHeaders);
+        }
+        else
+        {
+            final Dictionary fixtDictionary = parseDictionary(fileNames[0], dictionaryParser::parseWithHeaders);
+            final Dictionary fixDictionary = parseDictionary(fileNames[1], dictionaryParser::parse);
+            dictionary = mergeDictionaries(fixtDictionary, fixDictionary);
         }
 
         final PackageOutputManager parent = new PackageOutputManager(outputPath, PARENT_PACKAGE);
@@ -78,9 +94,23 @@ public final class CodecGenerationTool
         acceptorGenerator.generate();
     }
 
-    private static Dictionary parseDictionary(final File xmlFile, final Dictionary parentDictionary) throws Exception
+    private static Dictionary mergeDictionaries(final Dictionary fixtDictionary, final Dictionary fixDictionary)
     {
-        final DictionaryParser parser = new DictionaryParser();
+        final List<Message> allMessages = new ArrayList<>(fixtDictionary.messages());
+        allMessages.addAll(fixDictionary.messages());
+        final Map<String, Field> allFields = new HashMap<>(fixtDictionary.fields());
+        allFields.putAll(fixDictionary.fields());
+        final Map<String, Component> allComponents = new HashMap<>(fixtDictionary.components());
+        allComponents.putAll(fixDictionary.components());
+
+        return new Dictionary(allMessages, allFields, allComponents,
+                fixtDictionary.header(), fixtDictionary.trailer(),
+                fixtDictionary.specType(), fixtDictionary.majorVersion(), fixtDictionary.minorVersion());
+    }
+
+    private static Dictionary parseDictionary(final String fileName, final DictionaryMapper parser) throws Exception
+    {
+        final File xmlFile = new File(fileName);
         if (!xmlFile.exists())
         {
             System.err.println("xmlFile does not exist: " + xmlFile.getAbsolutePath());
@@ -94,8 +124,13 @@ public final class CodecGenerationTool
         }
         try (FileInputStream input = new FileInputStream(xmlFile))
         {
-            return parser.parse(input, parentDictionary);
+            return parser.parse(input);
         }
+    }
+
+    interface DictionaryMapper
+    {
+        Dictionary parse(InputStream inputStream) throws Exception;
     }
 
     private static void printUsageAndExit()

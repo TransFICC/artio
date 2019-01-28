@@ -288,7 +288,7 @@ public class DictionaryParserTest
     private Dictionary parseDictionary(final String name) throws Exception
     {
         return new DictionaryParser()
-            .parse(DictionaryParserTest.class.getResourceAsStream(name), null);
+            .parseWithHeaders(DictionaryParserTest.class.getResourceAsStream(name));
     }
 
     private <T> Matcher<T> withElement(final Matcher<?> valueMatcher)

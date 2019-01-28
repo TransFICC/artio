@@ -76,7 +76,7 @@ public final class DictionaryParser
         }
     }
 
-    public Dictionary parse(final InputStream in, final Dictionary fixtDictionary) throws Exception
+    public Dictionary parseWithHeaders(final InputStream in) throws Exception
     {
         final Document document = documentBuilder.parse(in);
         final Map<String, Field> fields = parseFields(document);
@@ -87,33 +87,31 @@ public final class DictionaryParser
         reconnectForwardReferences(forwardReferences, components);
         sanitizeDictionary(fields, components, messages);
 
-        if (fixtDictionary != null)
-        {
-            final ArrayList<Message> allMessages = new ArrayList<>(fixtDictionary.messages());
-            allMessages.addAll(messages);
-            final HashMap<String, Field> allFields = new HashMap<>(fixtDictionary.fields());
-            allFields.putAll(fields);
-            final HashMap<String, Component> allComponents = new HashMap<>(fixtDictionary.components());
-            allComponents.putAll(components);
+        final NamedNodeMap fixAttributes = document.getElementsByTagName("fix").item(0).getAttributes();
+        final int majorVersion = getInt(fixAttributes, "major");
+        final int minorVersion = getInt(fixAttributes, "minor");
 
-            return new Dictionary(allMessages, allFields, allComponents,
-                fixtDictionary.header(), fixtDictionary.trailer(),
-                fixtDictionary.specType(), fixtDictionary.majorVersion(), fixtDictionary.minorVersion());
-        }
-        else
-        {
-            final NamedNodeMap fixAttributes = document.getElementsByTagName("fix").item(0).getAttributes();
-            final int majorVersion = getInt(fixAttributes, "major");
-            final int minorVersion = getInt(fixAttributes, "minor");
+        final Component header = extractComponent(
+            document, fields, findHeader, "Header", components, forwardReferences);
+        final Component trailer = extractComponent(
+            document, fields, findTrailer, "Trailer", components, forwardReferences);
 
-            final Component header = extractComponent(
-                document, fields, findHeader, "Header", components, forwardReferences);
-            final Component trailer = extractComponent(
-                document, fields, findTrailer, "Trailer", components, forwardReferences);
+        final String specType = getValueOrDefault(fixAttributes, "type", "FIX");
+        return new Dictionary(messages, fields, components, header, trailer, specType, majorVersion, minorVersion);
+    }
 
-            final String specType = getValueOrDefault(fixAttributes, "type", "FIX");
-            return new Dictionary(messages, fields, components, header, trailer, specType, majorVersion, minorVersion);
-        }
+    public Dictionary parse(final InputStream in) throws Exception
+    {
+        final Document document = documentBuilder.parse(in);
+        final Map<String, Field> fields = parseFields(document);
+        final Map<Entry, String> forwardReferences = new HashMap<>();
+        final Map<String, Component> components = parseComponents(document, fields, forwardReferences);
+        final List<Message> messages = parseMessages(document, fields, components, forwardReferences);
+
+        reconnectForwardReferences(forwardReferences, components);
+        sanitizeDictionary(fields, messages);
+
+        return new Dictionary(messages, fields, components, null, null, null, -1, -1);
     }
 
     private void correctMultiCharacterCharEnums(final Map<String, Field> fields)
