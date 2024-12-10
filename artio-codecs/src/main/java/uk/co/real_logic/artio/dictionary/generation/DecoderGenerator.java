@@ -424,28 +424,21 @@ class DecoderGenerator extends Generator
                 "    {\n" +
                 "        for (final %2$s %6$s : %5$s.iterator())\n" +
                 "        {\n" +
+                "            %6$s.reset();\n" +
                 "            if (%6$s.next() == null)\n" +
                 "            {\n" +
-                "                %6$s.reset();\n" +
                 "                break;\n" +
-                "            }\n" +
-                "            else\n" +
-                "            {\n" +
-                "                %6$s.reset();\n" +
                 "            }\n" +
                 "        }\n" +
                 "        %3$s = MISSING_INT;\n" +
                 "        has%4$s = false;\n" +
-                "        %7$s = null;\n" +
                 "    }\n\n",
                 resetMethod,
                 decoderClassName(name),
                 formatPropertyName(numberField.name()),
                 numberField.name(),
                 iteratorFieldName(group),
-                formatPropertyName(decoderClassName(name)),
-                formatPropertyName(name)
-            );
+                formatPropertyName(decoderClassName(name)));
         }
     }
 
@@ -499,9 +492,6 @@ class DecoderGenerator extends Generator
     {
         return
             "        buffer = null;\n" +
-              (isGroup ?
-            "        next = null;\n" : ""
-              ) +
             "        if (" + CODEC_VALIDATION_ENABLED + ")\n" +
             "        {\n" +
             "            invalidTagId = Decoder.NO_ERROR;\n" +
@@ -1751,6 +1741,7 @@ class DecoderGenerator extends Generator
             "        this.buffer = buffer;\n" +
             "        final int end = offset + length;\n" +
             "        int position = offset;\n" +
+            "        int positionIter = position;\n" +
             (hasCommonCompounds ? "        position += header.decode(buffer, position, length);\n" : "") +
             (isGroup ? "        seenFields.clear();\n" : "") +
             "        int tag;\n\n" +
@@ -1945,7 +1936,17 @@ class DecoderGenerator extends Generator
             "                {\n" +
             "                    if (%1$sCurrent != null)\n" +
             "                    {\n" +
-            "                        position += %1$sCurrent.decode(buffer, position, end - position);\n" +
+            "                        positionIter = %1$sCurrent.decode(buffer, position, end - position);\n" +
+            "                        if (positionIter == 0 && " + CODEC_VALIDATION_ENABLED + ")\n" +
+            "                        {\n" +
+            "                                invalidTagId = tag;\n" +
+            "                                rejectReason = " + INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP + ";\n" +
+            "                                break;\n" +
+            "                        }\n" +
+            "                        else\n" +
+            "                        {\n" +
+            "                                position += positionIter;\n" +
+            "                        }\n" +
             "                        %1$sCurrent = %1$sCurrent.next();\n" +
             "                    }\n" +
             "                }\n" +
