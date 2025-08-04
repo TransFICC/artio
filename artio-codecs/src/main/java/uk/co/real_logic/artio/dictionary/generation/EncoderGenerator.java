@@ -680,7 +680,7 @@ class EncoderGenerator extends Generator
         return String.format(
             "    %4$spublic %2$s %1$sAsCopy(final byte[] value, final int offset, final int length)\n" +
             "    {\n" +
-            "        this.%1$s = copyInto(%1$s, value, offset, length);\n" +
+            "        this.%1$s = copyInto(this.%1$s, value, offset, length);\n" +
             "%3$s" +
             "        return this;\n" +
             "    }\n\n",
@@ -742,7 +742,7 @@ class EncoderGenerator extends Generator
     {
         return String.format(
             "    %4$s final MutableDirectBuffer %1$s = new UnsafeBuffer();\n" +
-            "    %4$s byte[] %1$sInternalBuffer = %1$s.byteArray();\n" +
+            "    %4$s byte[] %1$sInternalBuffer = this.%1$s.byteArray();\n" +
             "    %4$s int %1$sOffset = 0;\n" +
             "    %4$s int %1$sLength = 0;\n\n" +
             "    %5$spublic %2$s %1$s(final DirectBuffer value, final int offset, final int length)\n" +
@@ -769,9 +769,9 @@ class EncoderGenerator extends Generator
             "    }\n\n" +
             "    %5$spublic %2$s %1$sAsCopy(final byte[] value, final int offset, final int length)\n" +
             "    {\n" +
-            "        if (copyInto(%1$s, value, offset, length))\n" +
+            "        if (copyInto(this.%1$s, value, offset, length))\n" +
             "        {\n" +
-            "            %1$sInternalBuffer = %1$s.byteArray();\n" +
+            "            %1$sInternalBuffer = this.%1$s.byteArray();\n" +
             "        }\n" +
             "        this.%1$sOffset = 0;\n" +
             "        this.%1$sLength = length;\n" +
@@ -815,9 +815,9 @@ class EncoderGenerator extends Generator
             "%2$s" +
             "    %5$spublic %3$s %1$s(final CharSequence value)\n" +
             "    {\n" +
-            "        if (toBytes(value, %1$s))\n" +
+            "        if (toBytes(value, this.%1$s))\n" +
             "        {\n" +
-            "            %1$sInternalBuffer = %1$s.byteArray();\n" +
+            "            %1$sInternalBuffer = this.%1$s.byteArray();\n" +
             "        }\n" +
             "        this.%1$sOffset = 0;\n" +
             "        this.%1$sLength = value.length();\n" +
@@ -828,9 +828,9 @@ class EncoderGenerator extends Generator
             "        final DirectBuffer buffer = value.buffer();\n" +
             "        if (buffer != null)\n" +
             "        {\n" +
-            "            %1$s.wrap(buffer);\n" +
-            "            %1$sOffset = value.offset();\n" +
-            "            %1$sLength = value.length();\n" +
+            "            this.%1$s.wrap(buffer);\n" +
+            "            this.%1$sOffset = value.offset();\n" +
+            "            this.%1$sLength = value.length();\n" +
             "        }\n" +
             "        return this;\n" +
             "    }\n\n" +
@@ -844,9 +844,9 @@ class EncoderGenerator extends Generator
             "    }\n\n" +
             "    %5$spublic %3$s %1$s(final char[] value, final int offset, final int length)\n" +
             "    {\n" +
-            "        if (toBytes(value, %1$s, offset, length))\n" +
+            "        if (toBytes(value, this.%1$s, offset, length))\n" +
             "        {\n" +
-            "            %1$sInternalBuffer = %1$s.byteArray();\n" +
+            "            %1$sInternalBuffer = this.%1$s.byteArray();\n" +
             "        }\n" +
             "        this.%1$sOffset = 0;\n" +
             "        this.%1$sLength = length;\n" +
