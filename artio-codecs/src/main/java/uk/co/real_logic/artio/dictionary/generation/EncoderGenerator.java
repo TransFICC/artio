@@ -680,7 +680,7 @@ class EncoderGenerator extends Generator
         return String.format(
             "    %4$spublic %2$s %1$sAsCopy(final byte[] value, final int offset, final int length)\n" +
             "    {\n" +
-            "        %1$s = copyInto(%1$s, value, offset, length);\n" +
+            "        this.%1$s = copyInto(%1$s, value, offset, length);\n" +
             "%3$s" +
             "        return this;\n" +
             "    }\n\n",
@@ -747,9 +747,9 @@ class EncoderGenerator extends Generator
             "    %4$s int %1$sLength = 0;\n\n" +
             "    %5$spublic %2$s %1$s(final DirectBuffer value, final int offset, final int length)\n" +
             "    {\n" +
-            "        %1$s.wrap(value);\n" +
-            "        %1$sOffset = offset;\n" +
-            "        %1$sLength = length;\n" +
+            "        this.%1$s.wrap(value);\n" +
+            "        this.%1$sOffset = offset;\n" +
+            "        this.%1$sLength = length;\n" +
             "        return this;\n" +
             "    }\n\n" +
             "    %5$spublic %2$s %1$s(final DirectBuffer value, final int length)\n" +
@@ -762,9 +762,9 @@ class EncoderGenerator extends Generator
             "    }\n\n" +
             "    %5$spublic %2$s %1$s(final byte[] value, final int offset, final int length)\n" +
             "    {\n" +
-            "        %1$s.wrap(value);\n" +
-            "        %1$sOffset = offset;\n" +
-            "        %1$sLength = length;\n" +
+            "        this.%1$s.wrap(value);\n" +
+            "        this.%1$sOffset = offset;\n" +
+            "        this.%1$sLength = length;\n" +
             "        return this;\n" +
             "    }\n\n" +
             "    %5$spublic %2$s %1$sAsCopy(final byte[] value, final int offset, final int length)\n" +
@@ -773,8 +773,8 @@ class EncoderGenerator extends Generator
             "        {\n" +
             "            %1$sInternalBuffer = %1$s.byteArray();\n" +
             "        }\n" +
-            "        %1$sOffset = 0;\n" +
-            "        %1$sLength = length;\n" +
+            "        this.%1$sOffset = 0;\n" +
+            "        this.%1$sLength = length;\n" +
             "        return this;\n" +
             "    }\n\n" +
             "    %5$spublic %2$s %1$s(final byte[] value, final int length)\n" +
@@ -819,8 +819,8 @@ class EncoderGenerator extends Generator
             "        {\n" +
             "            %1$sInternalBuffer = %1$s.byteArray();\n" +
             "        }\n" +
-            "        %1$sOffset = 0;\n" +
-            "        %1$sLength = value.length();\n" +
+            "        this.%1$sOffset = 0;\n" +
+            "        this.%1$sLength = value.length();\n" +
             "        return this;\n" +
             "    }\n\n" +
             "    %5$spublic %3$s %1$s(final AsciiSequenceView value)\n" +
@@ -848,8 +848,8 @@ class EncoderGenerator extends Generator
             "        {\n" +
             "            %1$sInternalBuffer = %1$s.byteArray();\n" +
             "        }\n" +
-            "        %1$sOffset = 0;\n" +
-            "        %1$sLength = length;\n" +
+            "        this.%1$sOffset = 0;\n" +
+            "        this.%1$sLength = length;\n" +
             "        return this;\n" +
             "    }\n\n" +
             "%4$s",
@@ -907,13 +907,13 @@ class EncoderGenerator extends Generator
             "%2$s" +
             "    %7$spublic %3$s %1$s(ReadOnlyDecimalFloat value)\n" +
             "    {\n" +
-            "        %1$s.set(value);\n" +
+            "        this.%1$s.set(value);\n" +
             "%4$s" +
             "        return this;\n" +
             "    }\n\n" +
             "    %7$spublic %3$s %1$s(long value, int scale)\n" +
             "    {\n" +
-            "        %1$s.set(value, scale);\n" +
+            "        this.%1$s.set(value, scale);\n" +
             "%4$s" +
             "        return this;\n" +
             "    }\n\n" +
@@ -1230,7 +1230,7 @@ class EncoderGenerator extends Generator
     private String resetAnyFields(final Entry entry)
     {
         return String.format(
-            "        %1$s.reset();\n",
+            "        this.%1$s.reset();\n",
             formatPropertyName(entry.name()));
     }
 
@@ -1276,7 +1276,7 @@ class EncoderGenerator extends Generator
         }
 
         return String.format(
-            "        %1$s.copyTo(%2$s.%1$s());\n",
+            "        this.%1$s.copyTo(%2$s.%1$s());\n",
             formatPropertyName(element.name()),
             encoderName);
     }
@@ -1476,7 +1476,7 @@ class EncoderGenerator extends Generator
     private String callComponentReset(final Entry entry)
     {
         return String.format(
-            "        %1$s.reset();\n",
+            "        this.%1$s.reset();\n",
             formatPropertyName(entry.name()));
     }
 
